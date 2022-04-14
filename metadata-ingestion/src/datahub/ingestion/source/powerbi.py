@@ -567,12 +567,24 @@ class PowerBiAPI:
                 )
             )
             return None
+
+        if len(value) > 1:
+            # We are currently supporting data-set having single relational database
+            LOGGER.info(
+                "more than one data-source found for {}({})".format(
+                    dataset.name, dataset.id
+                )
+            )
+            LOGGER.debug(value)
+            return None
+
         # Consider only zero index datasource
         datasource_dict = value[0]
-
         # Create datasource instance with basic detail available
         datasource = PowerBiAPI.DataSource(
-            id=datasource_dict["datasourceId"],
+            id=datasource_dict.get(
+                "datasourceId"
+            ),  # datasourceId is not available in all cases
             type=datasource_dict["datasourceType"],
             server=None,
             database=None,
@@ -587,6 +599,9 @@ class PowerBiAPI:
             datasource.server = datasource_dict["connectionDetails"]["server"]
         else:
             datasource.metadata = PowerBiAPI.DataSource.MetaData(is_relational=False)
+            LOGGER.warning(
+                "Non relational data-source found = {}".format(datasource_dict)
+            )
 
         return datasource
 
@@ -956,7 +971,7 @@ class Mapper:
         if dataset is None:
             return dataset_mcps
 
-        # We are only suporting relation PowerBi DataSources
+        # We are only supporting relation PowerBi DataSources
         if (
             dataset.datasource is None
             or dataset.datasource.metadata.is_relational is False
