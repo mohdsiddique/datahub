@@ -570,8 +570,8 @@ class PowerBiAPI:
 
         if len(value) > 1:
             # We are currently supporting data-set having single relational database
-            LOGGER.info(
-                "more than one data-source found for {}({})".format(
+            LOGGER.warning(
+                "More than one data-source found for {}({})".format(
                     dataset.name, dataset.id
                 )
             )
