@@ -518,7 +518,7 @@ class PowerBiAPI:
             raise ConnectionError(message)
 
         response_dict = response.json()
-
+        LOGGER.info("datasets = {}".format(response_dict))
         # PowerBi Always return the webURL, in-case if it is None then setting complete webURL to None instead of None/details
         return PowerBiAPI.Dataset(
             id=response_dict.get("id"),
@@ -580,6 +580,7 @@ class PowerBiAPI:
 
         # Consider only zero index datasource
         datasource_dict = value[0]
+        LOGGER.debug("data-sources = {}".format(value))
         # Create datasource instance with basic detail available
         datasource = PowerBiAPI.DataSource(
             id=datasource_dict.get(
@@ -618,27 +619,23 @@ class PowerBiAPI:
             Find out which is the data source for tile. It is either REPORT or DATASET
             """
             report_fields = {
-                "dataset": None,
-                "report": None,
+                "dataset": (
+                    workspace.datasets[tile_instance.get("datasetId")]
+                    if tile_instance.get("datasetId") is not None
+                    else None
+                ),
+                "report": (
+                    self.__get_report(
+                        workspace_id=workspace.id,
+                        report_id=tile_instance.get("reportId"),
+                    )
+                    if tile_instance.get("reportId") is not None
+                    else None
+                ),
                 "createdFrom": PowerBiAPI.Tile.CreatedFrom.UNKNOWN,
             }
 
-            report_fields["dataset"] = (
-                workspace.datasets[tile_instance.get("datasetId")]
-                if tile_instance.get("datasetId") is not None
-                else None
-            )
-            report_fields["report"] = (
-                self.__get_report(
-                    workspace_id=workspace.id,
-                    report_id=tile_instance.get("reportId"),
-                )
-                if tile_instance.get("reportId") is not None
-                else None
-            )
-
             # Tile is either created from report or dataset or from custom visualization
-            report_fields["createdFrom"] = PowerBiAPI.Tile.CreatedFrom.UNKNOWN
             if report_fields["report"] is not None:
                 report_fields["createdFrom"] = PowerBiAPI.Tile.CreatedFrom.REPORT
             elif report_fields["dataset"] is not None:
@@ -679,6 +676,7 @@ class PowerBiAPI:
 
         # Iterate through response and create a list of PowerBiAPI.Dashboard
         tile_dict: List[Any] = response.json()[Constant.VALUE]
+        LOGGER.debug("Tile Dict = {}".format(tile_dict))
         tiles: List[PowerBiAPI.Tile] = [
             PowerBiAPI.Tile(
                 id=instance.get("id"),
@@ -893,6 +891,7 @@ class PowerBiAPI:
 
         # Scan is complete lets take the result
         scan_result = get_scan_result(scan_id=scan_id)
+        LOGGER.debug("scan result = {}".format(scan_result))
         workspace = PowerBiAPI.Workspace(
             id=scan_result["id"],
             name=scan_result["name"],
