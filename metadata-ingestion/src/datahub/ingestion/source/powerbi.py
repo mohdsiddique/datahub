@@ -1166,7 +1166,7 @@ class Mapper:
 
         # Dashboard Ownership
         owners = [
-            OwnerClass(owner=user_urn, type=OwnershipTypeClass.CONSUMER)
+            OwnerClass(owner=user_urn, type=OwnershipTypeClass.NONE)
             for user_urn in user_urn_list
             if user_urn is not None
         ]
